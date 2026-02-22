@@ -1,0 +1,242 @@
+ <!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中国腕力排行榜</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/home.css">
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- 顶部导航 -->
+    <header class="top-header">
+        <div class="header-inner">
+            <div class="logo" onclick="location.href='/'">
+                <i class="fas fa-fist-raised"></i>
+                <span>中国腕力排行榜</span>
+            </div>
+            <div class="header-right">
+                <div class="time-display" id="currentTime"></div>
+                <div id="loginArea">
+                    <button class="header-btn" onclick="showLoginModal()"><i class="fas fa-sign-in-alt"></i> 登录</button>
+                    <button class="header-btn accent" onclick="showRegisterModal()"><i class="fas fa-user-plus"></i> 注册</button>
+                </div>
+                <div id="userArea" style="display:none">
+                    <span class="user-info"><i class="fas fa-user-circle"></i> <span id="userName"></span></span>
+                    <button class="header-btn" onclick="showChangePasswordModal()"><i class="fas fa-key"></i></button>
+                    <button class="header-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主横幅 -->
+    <section class="hero-banner">
+        <div class="hero-content">
+            <h1 class="hero-title">
+                <i class="fas fa-fist-raised hero-icon"></i>
+                中国腕力排行榜
+            </h1>
+            <p class="hero-subtitle">汇聚全国各地腕力高手 · 记录每一份力量与荣耀</p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-num" id="statRegions">0</div>
+                    <div class="stat-label">入驻地区</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-num" id="statPlayers">0</div>
+                    <div class="stat-label">上榜选手</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 搜索与筛选 -->
+    <section class="filter-section">
+        <div class="filter-inner">
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="搜索地区名称...">
+            </div>
+            <div class="province-filter">
+                <button class="province-btn active" data-province="">全部地区</button>
+                <div id="provinceList"></div>
+            </div>
+            <button class="create-region-btn" id="createRegionBtn" style="display:none" onclick="showCreateRegionModal()">
+                <i class="fas fa-plus-circle"></i> 创建新地区排行榜
+            </button>
+        </div>
+    </section>
+
+    <!-- 地区列表 -->
+    <section class="regions-section">
+        <div class="regions-grid" id="regionsGrid"></div>
+        <div class="empty-state" id="emptyState" style="display:none">
+            <i class="fas fa-map-marked-alt"></i>
+            <p>暂无地区排行榜</p>
+            <p class="empty-sub">登录后可以创建你所在地区的排行榜</p>
+        </div>
+    </section>
+
+    <!-- 登录弹窗 -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-sign-in-alt"></i> 登录</h3>
+                <button class="modal-close" onclick="closeModal('loginModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label>密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('loginModal')">取消</button>
+                <button class="btn btn-primary" onclick="doLogin()">登录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-user-plus"></i> 注册</h3>
+                <button class="modal-close" onclick="closeModal('registerModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>用户名 <small>（至少3个字符，用于登录）</small></label>
+                    <input type="text" id="regUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label>昵称 <small>（显示名称）</small></label>
+                    <input type="text" id="regNickname" placeholder="请输入昵称">
+                </div>
+                <div class="form-group">
+                    <label>密码 <small>（至少6个字符）</small></label>
+                    <input type="password" id="regPassword" placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <label>确认密码</label>
+                    <input type="password" id="regConfirm" placeholder="再次输入密码" onkeydown="if(event.key==='Enter')doRegister()">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('registerModal')">取消</button>
+                <button class="btn btn-primary" onclick="doRegister()">注册</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改密码弹窗 -->
+    <div class="modal-overlay" id="passwordModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-key"></i> 修改密码</h3>
+                <button class="modal-close" onclick="closeModal('passwordModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>原密码</label>
+                    <input type="password" id="oldPassword" placeholder="请输入原密码">
+                </div>
+                <div class="form-group">
+                    <label>新密码</label>
+                    <input type="password" id="newPassword" placeholder="请输入新密码">
+                </div>
+                <div class="form-group">
+                    <label>确认新密码</label>
+                    <input type="password" id="confirmPassword" placeholder="再次输入新密码">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('passwordModal')">取消</button>
+                <button class="btn btn-primary" onclick="doChangePassword()">确认修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 创建地区弹窗 -->
+    <div class="modal-overlay" id="createRegionModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus-circle"></i> 创建地区排行榜</h3>
+                <button class="modal-close" onclick="closeModal('createRegionModal')"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>地区名称 <small>（如：郑州潇洒、北京铁臂等）</small></label>
+                    <input type="text" id="regionName" placeholder="请输入地区名称">
+                </div>
+                <div class="form-group">
+                    <label>所属省份</label>
+                    <select id="regionProvince">
+                        <option value="">请选择省份</option>
+                        <option value="北京">北京</option>
+                        <option value="天津">天津</option>
+                        <option value="上海">上海</option>
+                        <option value="重庆">重庆</option>
+                        <option value="河北">河北</option>
+                        <option value="山西">山西</option>
+                        <option value="辽宁">辽宁</option>
+                        <option value="吉林">吉林</option>
+                        <option value="黑龙江">黑龙江</option>
+                        <option value="江苏">江苏</option>
+                        <option value="浙江">浙江</option>
+                        <option value="安徽">安徽</option>
+                        <option value="福建">福建</option>
+                        <option value="江西">江西</option>
+                        <option value="山东">山东</option>
+                        <option value="河南">河南</option>
+                        <option value="湖北">湖北</option>
+                        <option value="湖南">湖南</option>
+                        <option value="广东">广东</option>
+                        <option value="海南">海南</option>
+                        <option value="四川">四川</option>
+                        <option value="贵州">贵州</option>
+                        <option value="云南">云南</option>
+                        <option value="陕西">陕西</option>
+                        <option value="甘肃">甘肃</option>
+                        <option value="青海">青海</option>
+                        <option value="台湾">台湾</option>
+                        <option value="内蒙古">内蒙古</option>
+                        <option value="广西">广西</option>
+                        <option value="西藏">西藏</option>
+                        <option value="宁夏">宁夏</option>
+                        <option value="新疆">新疆</option>
+                        <option value="香港">香港</option>
+                        <option value="澳门">澳门</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>简介 <small>（选填）</small></label>
+                    <textarea id="regionDesc" placeholder="简单介绍一下这个地区的腕力圈" rows="3"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-cancel" onclick="closeModal('createRegionModal')">取消</button>
+                <button class="btn btn-primary" onclick="doCreateRegion()">创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast" id="toast"></div>
+
+    <!-- 页脚 -->
+    <footer class="site-footer">
+        <p>中国腕力排行榜 &copy; 2024 · 汇聚力量，记录荣耀</p>
+    </footer>
+
+    <script src="/js/home.js"></script>
+</body>
+</html>

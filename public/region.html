@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>腕力排行榜</title>
+    <link rel="stylesheet" href="/css/region.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <canvas id="particleCanvas"></canvas>
+
+    <!-- 左上角导航 -->
+    <div class="top-left-nav">
+        <a href="/" class="nav-switch-btn nav-home-btn" title="返回首页">
+            <i class="fas fa-home"></i>
+        </a>
+        <button class="nav-switch-btn active" data-page="ranking">
+            <i class="fas fa-fist-raised"></i> 战力榜
+        </button>
+        <button class="nav-switch-btn" data-page="contribution">
+            <i class="fas fa-award"></i> 贡献榜
+        </button>
+    </div>
+
+    <!-- 右上角用户区 -->
+    <div class="top-right-admin">
+        <div id="loginArea">
+            <button class="admin-btn login-btn-top" onclick="showLoginModal()">
+                <i class="fas fa-sign-in-alt"></i> 登录
+            </button>
+            <button class="admin-btn register-btn-top" onclick="showRegisterModal()">
+                <i class="fas fa-user-plus"></i> 注册
+            </button>
+        </div>
+        <div id="userArea" style="display:none;">
+            <span class="admin-welcome"><i class="fas fa-crown"></i> <span id="userName"></span></span>
+            <button class="admin-btn admin-only" style="display:none" onclick="showAdminPanel()"><i class="fas fa-cog"></i></button>
+            <button class="admin-btn logout-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> 退出</button>
+        </div>
+    </div>
+
+    <!-- ===== 页面1：腕力排行榜 ===== -->
+    <div class="page-content active" id="rankingPage">
+        <div class="main-container">
+            <header class="header">
+                <div class="title-wrapper">
+                    <div class="title-decoration left">
+                        <span class="deco-line"></span>
+                        <i class="fas fa-fist-raised"></i>
+                    </div>
+                    <h1 class="main-title" id="regionTitle">加载中...</h1>
+                    <div class="title-decoration right">
+                        <i class="fas fa-fist-raised"></i>
+                        <span class="deco-line"></span>
+                    </div>
+                </div>
+                <div class="subtitle">⚡ 力量的巅峰 · 荣耀的殿堂 ⚡</div>
+            </header>
+
+            <div class="time-display">
+                <div class="time-icon"><i class="fas fa-clock"></i></div>
+                <div id="currentTime" class="time-text"></div>
+            </div>
+
+            <div class="hand-switch">
+                <button class="hand-btn active" data-hand="right">
+                    <i class="fas fa-hand-paper icon-right"></i><span>右手榜</span>
+                    <div class="btn-glow"></div>
+                </button>
+                <button class="hand-btn" data-hand="left">
+                    <i class="fas fa-hand-paper icon-left"></i><span>左手榜</span>
+                    <div class="btn-glow"></div>
+                </button>
+            </div>
+
+            <div class="admin-action-bar admin-only" style="display:none;">
+                <button class="admin-btn add-btn" onclick="showAddModal()">
+                    <i class="fas fa-user-plus"></i> 添加选手
+                </button>
+            </div>
+
+            <div class="ranking-container">
+                <div class="table-wrapper">
+                    <table class="ranking-table">
+                        <thead>
+                            <tr>
+                                <th class="col-rank">名次</th>
+                                <th class="col-avatar">头像</th>
+                                <th class="col-name">姓名</th>
+                                <th class="col-title">称号</th>
+                                <th class="col-power">战斗力</th>
+                                <th class="col-skill">技巧</th>
+                                <th class="col-action admin-only" style="display:none;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rankingBody"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="empty-state" style="display:none;">
+                    <i class="fas fa-trophy"></i>
+                    <p>暂无排行数据</p>
+                    <p class="empty-sub">等待英雄入榜</p>
+                </div>
+            </div>
+
+            <footer class="footer">
+                <p id="footerText">💪 腕力排行榜 · 实力铸就荣耀 💪</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ===== 页面2：贡献榜 ===== -->
+    <div class="page-content" id="contributionPage">
+        <div class="main-container">
+            <header class="header">
+                <h1 class="main-title contrib-title" id="contribTitle">推广贡献榜</h1>
+                <div class="time-display" style="margin-top:15px;">
+                    <div class="time-icon"><i class="fas fa-clock"></i></div>
+                    <div id="contribTime" class="time-text"></div>
+                </div>
+            </header>
+
+            <div class="contrib-tabs">
+                <button class="contrib-tab active" data-ctype="resource">资源</button>
+                <button class="contrib-tab" data-ctype="honor">荣誉</button>
+            </div>
+
+            <div class="admin-action-bar admin-only" style="display:none;">
+                <button class="admin-btn add-btn" onclick="showContribAddModal()">
+                    <i class="fas fa-user-plus"></i> 添加成员
+                </button>
+            </div>
+
+            <div class="contrib-container">
+                <div class="contrib-table-wrapper">
+                    <div class="contrib-header">
+                        <div>名次</div>
+                        <div>头像</div>
+                        <div id="contribValueHeader">成员贡献值</div>
+                        <div>说明</div>
+                        <div>累计</div>
+                        <div class="admin-only" style="display:none;">操作</div>
+                    </div>
+                    <div class="contrib-body" id="contribBody"></div>
+                </div>
+                <div id="contribEmpty" class="empty-state" style="display:none;">
+                    <i class="fas fa-award"></i>
+                    <p>暂无贡献数据</p>
+                    <p class="empty-sub">等待贡献者入榜</p>
+                </div>
+            </div>
+
+            <footer class="footer">
+                <p>💪 腕力排行榜 · 实力铸就荣耀 💪</p>
+            </footer>
+        </div>
+    </div>
+
+    <!-- ===== 所有弹窗 ===== -->
+
+    <!-- 登录弹窗 -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-sign-in-alt"></i> 登录</h2>
+                <button class="modal-close" onclick="closeModal('loginModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> 用户名</label>
+                    <input type="text" id="loginUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> 密码</label>
+                    <input type="password" id="loginPassword" placeholder="请输入密码" onkeydown="if(event.key==='Enter')doLogin()">
+                </div>
+                <button class="submit-btn" onclick="doLogin()"><i class="fas fa-sign-in-alt"></i> 登 录</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 注册弹窗 -->
+    <div class="modal-overlay" id="registerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> 注册账号</h2>
+                <button class="modal-close" onclick="closeModal('registerModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label><i class="fas fa-user"></i> 用户名 <small style="color:var(--text-secondary);font-weight:400">（至少3个字符）</small></label>
+                    <input type="text" id="regUsername" placeholder="请输入用户名">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-id-badge"></i> 昵称 <small style="color:var(--text-secondary);font-weight:400">（显示名称）</small></label>
+                    <input type="text" id="regNickname" placeholder="请输入昵称">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> 密码 <small style="color:var(--text-secondary);font-weight:400">（至少6个字符）</small></label>
+                    <input type="password" id="regPassword" placeholder="请输入密码">
+                </div>
+                <div class="form-group">
+                    <label><i class="fas fa-lock"></i> 确认密码</label>
+                    <input type="password" id="regConfirm" placeholder="再次输入密码" onkeydown="if(event.key==='Enter')doRegister()">
+                </div>
+                <button class="submit-btn" onclick="doRegister()"><i class="fas fa-user-plus"></i> 注 册</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 添加选手 -->
+    <div class="modal-overlay" id="addModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-user-plus"></i> 添加选手</h2>
+                <button class="modal-close" onclick="closeModal('addModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group"><label>手别</label>
+                    <select id="addHand"><option value="right">右手</option><option value="left">左手</option></select>
+                </div>
+                <div class="form-group"><label>姓名</label><input type="text" id="addName" placeholder="选手姓名"></div>
+                <div class="form-group"><label>战斗力</label><input type="text" id="addPower" placeholder="战斗力"></div>
+                <div class="form-group"><label>技巧</label><input type="text" id="addSkill" placeholder="技巧"></div>
+                <button class="submit-btn" onclick="doAddPlayer()"><i class="fas fa-plus-circle"></i> 添加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑选手 -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-edit"></i> 编辑选手</h2>
+                <button class="modal-close" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editId">
+                <div class="form-group"><label>姓名</label><input type="text" id="editName"></div>
+                <div class="form-group"><label>战斗力</label><input type="text" id="editPower"></div>
+                <div class="form-group"><label>技巧</label><input type="text" id="editSkill"></div>
+                <button class="submit-btn" onclick="doEditPlayer()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 贡献榜编辑 -->
+    <div class="modal-overlay" id="contribModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 id="contribModalTitle"><i class="fas fa-user-plus"></i> 添加成员</h2>
+                <button class="modal-close" onclick="closeModal('contribModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="contribEditId">
+                <div class="form-group"><label>成员名称</label><input type="text" id="contribName" placeholder="成员名称"></div>
+                <div class="form-group"><label>贡献值/荣誉值</label><input type="text" id="contribValue" placeholder="贡献值"></div>
+                <div class="form-group"><label>说明</label><input type="text" id="contribNote" placeholder="说明（可选）"></div>
+                <div class="form-group"><label>累计</label><input type="text" id="contribTotal" placeholder="累计"></div>
+                <button class="submit-btn" onclick="doSaveContribMember()"><i class="fas fa-save"></i> 保存</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 说明历史 -->
+    <div class="modal-overlay" id="noteHistoryModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2><i class="fas fa-history"></i> 说明历史记录</h2>
+                <button class="modal-close" onclick="closeModal('noteHistoryModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div id="noteHistoryList" class="note-history-list"></div>
+                <div class="admin-only note-add-section" style="display:none;">
+                    <div class="form-group" style="margin-top:15px;">
+                        <label>添加新说明</label>
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="newNoteInput" placeholder="输入说明内容..." style="flex:1;" onkeydown="if(event.key==='Enter')doAddNote()">
+                            <button class="submit-btn" style="width:auto;padding:10px 20px;" onclick="doAddNote()"><i class="fas fa-plus"></i></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 管理面板 -->
+    <div class="modal-overlay" id="adminPanelModal">
+        <div class="modal modal-wide">
+            <div class="modal-header">
+                <h2><i class="fas fa-cog"></i> 地区管理</h2>
+                <button class="modal-close" onclick="closeModal('adminPanelModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="admin-section">
+                    <h4><i class="fas fa-info-circle"></i> 地区信息</h4>
+                    <div class="form-group"><label>名称</label><input type="text" id="adminRegionName"></div>
+                    <div class="form-group"><label>省份</label><input type="text" id="adminRegionProvince"></div>
+                    <div class="form-group"><label>简介</label><textarea id="adminRegionDesc" rows="2" style="width:100%;padding:10px 14px;font-size:14px;font-family:var(--font-main);color:var(--text-primary);background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-sm);outline:none;resize:vertical;"></textarea></div>
+                    <button class="submit-btn" style="width:auto;padding:10px 24px;" onclick="doUpdateRegion()"><i class="fas fa-save"></i> 保存信息</button>
+                </div>
+                <div class="admin-section">
+                    <h4><i class="fas fa-users-cog"></i> 管理员列表</h4>
+                    <div id="adminList"></div>
+                    <div class="owner-only" style="display:none;margin-top:10px;">
+                        <div style="display:flex;gap:8px;">
+                            <input type="text" id="newAdminUsername" placeholder="输入用户名添加管理员" style="flex:1;padding:10px 14px;font-size:14px;font-family:var(--font-main);color:var(--text-primary);background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-sm);outline:none;">
+                            <button class="submit-btn" style="width:auto;padding:10px 20px;" onclick="doAddAdmin()"><i class="fas fa-plus"></i> 添加</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="admin-section owner-only" style="display:none;">
+                    <h4 style="color:var(--accent-red);"><i class="fas fa-exclamation-triangle"></i> 危险操作</h4>
+                    <button class="submit-btn" style="background:linear-gradient(135deg, #ef4444, #dc2626);width:auto;padding:10px 24px;" onclick="confirmDeleteRegion()"><i class="fas fa-trash-alt"></i> 删除此地区</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 隐藏文件上传 -->
+    <input type="file" id="avatarInput" accept="image/*" style="display:none;" onchange="uploadAvatar(event)">
+    <input type="file" id="contribAvatarInput" accept="image/*" style="display:none;" onchange="uploadContribAvatar(event)">
+
+    <div id="toast" class="toast"></div>
+
+    <script src="/js/region.js"></script>
+</body>
+</html>
